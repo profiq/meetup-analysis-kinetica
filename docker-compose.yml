@@ -5,5 +5,6 @@ services:
     ports:
       - "10002:8080"  # Admin
       - "10003:8088"  # Reveal
+      - "10004:9191"  # REST API
     privileged: true
     mem_limit: 8g
