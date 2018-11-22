@@ -3,8 +3,7 @@ services:
   kinetica:
     image: kinetica/kinetica-intel
     ports:
-      - "10002:8080"
-      - "10003:8088"
+      - "10002:8080"  # Admin
+      - "10003:8088"  # Reveal
     privileged: true
     mem_limit: 8g
-    
