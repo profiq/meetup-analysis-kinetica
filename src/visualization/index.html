@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Meetup.com Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <!-- Include Mapbox stylesheet -->
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.41.0/mapbox-gl.css' rel='stylesheet' />
+
+    <!-- Include Kickbox CSS -->
+    <link rel="stylesheet" href='./kickbox.css' />
+
+    <!-- Generic styles for Mapbox map -->
+    <style>
+        body { margin:0; padding:0;}
+        #map { position:absolute; top:0; bottom:0; width:100%; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+<!-- Include a map div -->
+<div id='map'></div>
+
+<!-- Include mapbox and kickbox library -->
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.41.0/mapbox-gl.js"></script>
+<script src="./kickbox.min.js"></script>
+<script>
+    (function(mapboxgl) {
+
+        // Initialize the map
+        var kbConfig = {
+            kineticaUrl: 'http://localhost:10004',
+            wmsUrl: 'http://localhost:10004/wms',
+            mapboxKey: 'pk.eyJ1IjoibXN2YW5hcHJvZmlxIiwiYSI6ImNqb3R6dDk0YzEzOXgzcHBjcHB4ZGFzc3AifQ.JwAE4uhGh1fr2bz9mvMBmQ',
+            tableName: 'event_rsvp',
+            xColumnName: 'lng',
+            yColumnName: 'lat',
+            // geohashColumnName: 'your_geohash_column_name',
+            center: [-74.2598555, 40.6971494],
+            zoom: 2.0,
+            // If using basic authentication
+            // username: '',
+            // password: ''
+        };
+
+        var layerId = kbConfig.tableName + '-raster';
+
+        kickbox.initMap({
+            mapDiv: 'map',
+            mapboxgl: mapboxgl,
+            mapboxKey: kbConfig.mapboxKey,
+            kineticaUrl: kbConfig.kineticaUrl,
+            wmsUrl: kbConfig.wmsUrl,
+            zoom: kbConfig.zoom,
+            center: kbConfig.center,
+        }).then(function(map) {
+
+            // Add a raster layer to the map
+
+            kickbox.addWmsLayer(map, {
+                layerType: 'heatmap',
+                layerId: layerId,
+                wmsUrl: kbConfig.wmsUrl,
+                tableName: kbConfig.tableName,
+                xAttr: kbConfig.xColumnName,
+                yAttr: kbConfig.yColumnName,
+                // or if using WKT
+                // geoAttr: kbConfig.wktColumnName,
+                renderingOptions: {
+                    POINTCOLORS: '00FF00',
+                    LABEL_TEXT_STRING: 'name',
+                    POINTSIZES: 2
+                },
+            });
+
+            var i = 0;
+
+            /**
+            setInterval(function() {
+                console.log(layerId + i);
+                kickbox.removeLayer(map, layerId + i);
+
+                i++;
+
+                kickbox.addWmsLayer(map, {
+                    layerType: 'heatmap',
+                    layerId: layerId + i,
+                    wmsUrl: kbConfig.wmsUrl,
+                    tableName: kbConfig.tableName,
+                    xAttr: kbConfig.xColumnName,
+                    yAttr: kbConfig.yColumnName,
+                    // or if using WKT
+                    // geoAttr: kbConfig.wktColumnName,
+                    renderingOptions: {
+                        POINTCOLORS: '00FF00',
+                        LABEL_TEXT_STRING: 'name',
+                        POINTSIZES: 2
+                    },
+                });
+            }, 1000);
+             */
+
+
+        });
+
+    })(window.mapboxgl);
+</script>
+</body>
+</html>
