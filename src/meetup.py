@@ -1,66 +1,52 @@
-import asyncio
+# -*- coding: utf-8 -*-
+import functools
 import json
 
 import gpudb
-import websockets
+import websocket
 import collections
 
+import config
+
 MEETUP_API_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
-GPUDB_HOST = '127.0.0.1'
-GPUDB_PORT = '10004'  # Must be a string, otherwise does not work
 
 
-async def get_meetup_event(queue: asyncio.Queue):
-    async with websockets.connect(MEETUP_API_ENDPOINT) as meetup_ws:
-        while True:
-            meetup_event_string = await meetup_ws.recv()
-            meetup_event = json.loads(meetup_event_string)
-            await queue.put(meetup_event)
-            print('RSVP ID: %d in queue ready to be processed' % meetup_event['rsvp_id'])
+def main():
+    db = gpudb.GPUdb(host=config.GPUDB_HOST, port=config.GPUDB_PORT)
+    websocket.enableTrace(False)
+    on_message = functools.partial(store_rsvp, db=db)
+    ws = websocket.WebSocketApp(MEETUP_API_ENDPOINT, on_message=on_message)
+    ws.run_forever()
 
 
-async def save_meetup_event(queue: asyncio.Queue, db: gpudb.GPUdb):
-    while True:
-        meetup_event = await queue.get()
+def store_rsvp(_, rsvp_string, db):
+    rsvp = json.loads(rsvp_string)
+    print('RSVP ID: %d ready to be processed' % rsvp['rsvp_id'])
 
-        event = {
-            'event_id': meetup_event['event']['event_id'],
-            'name': meetup_event['event']['event_name'],
-            'url': meetup_event['event']['event_url'],
-            'timestamp': meetup_event['event']['time'],
-            'lat': meetup_event['venue']['lat'] if 'venue' in meetup_event else None,
-            'lng': meetup_event['venue']['lon'] if 'venue' in meetup_event else None
-        }
+    event_db_record = collections.OrderedDict()
+    event_db_record['event_id'] = rsvp['event']['event_id']
+    event_db_record['name'] = rsvp['event']['event_name']
+    event_db_record['url'] = rsvp['event']['event_url']
+    event_db_record['timestamp'] = rsvp['event']['time'] if 'time' in rsvp['event'] else None
+    event_db_record['lat'] = rsvp['venue']['lat'] if 'venue' in rsvp else None
+    event_db_record['lng'] = rsvp['venue']['lon'] if 'venue' in rsvp else None
 
-        print(json.dumps(event))
+    rsvp_db_record = collections.OrderedDict()
+    rsvp_db_record['rsvp_id'] = rsvp['rsvp_id']
+    rsvp_db_record['response'] = 1 if rsvp['response'] == 'yes' else 0
+    rsvp_db_record['timestamp'] = rsvp['mtime']
+    rsvp_db_record['event_id'] = rsvp['event']['event_id']
 
-        rsvp = {
-            'rsvp_id': meetup_event['rsvp_id'],
-            'response': 1 if meetup_event['response'] == 'yes' else 0,
-            'timestamp': meetup_event['mtime'],
-            'event_id': meetup_event['event']['event_id']
-        }
+    response_rsvp = db.insert_records('rsvp', json.dumps(rsvp_db_record), list_encoding='json')
+    response_event = db.insert_records('event', json.dumps(event_db_record), list_encoding='json')
 
-        response_rsvp = db.insert_records('rsvp', json.dumps(rsvp), list_encoding='json')
-        response_event = db.insert_records('event', json.dumps(event), list_encoding='json')
-
-        print(response_event['status_info'])
-
-        if response_rsvp['status_info']['status'] == 'OK':
-            print('RSVP ID: %d stored in DB' % meetup_event['rsvp_id'])
-        else:
-            print('Error while storing: %s' % response_rsvp['status_info']['message'])
-
-        queue.task_done()
-
-
-async def main():
-    db = gpudb.GPUdb(host='127.0.0.1', port='10004')
-    meetup_event_queue = asyncio.Queue()
-    saver = asyncio.create_task(save_meetup_event(meetup_event_queue, db))
-    getter = asyncio.create_task(get_meetup_event(meetup_event_queue))
-    await saver, getter
+    if response_rsvp['status_info']['status'] == 'OK' and response_event['status_info']['status'] == 'OK':
+        print('RSVP ID: %d stored in DB' % rsvp['rsvp_id'])
+    else:
+        print('Error while storing')
+        print(response_rsvp)
+        print(response_event)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()

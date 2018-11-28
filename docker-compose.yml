@@ -3,8 +3,12 @@ services:
   kinetica:
     image: kinetica/kinetica-intel
     ports:
-      - "10002:8080"  # Admin
-      - "10003:8088"  # Reveal
-      - "10004:9191"  # REST API
+      - "8080:8080"  # Admin
+      - "8088:8088"  # Reveal
+      - "9191:9191"  # REST API
     privileged: true
     mem_limit: 8g
+  python:
+    build:
+      context: .
+      dockerfile: docker/python.dockerfile

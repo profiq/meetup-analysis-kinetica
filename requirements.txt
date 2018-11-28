@@ -1,2 +1,2 @@
-websockets == 7.0
-gpudb >= 6.2
+websocket-client==0.14.0
+gpudb==6.2.0.10
