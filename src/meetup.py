@@ -23,29 +23,24 @@ def store_rsvp(_, rsvp_string, db):
     rsvp = json.loads(rsvp_string)
     print('RSVP ID: %d ready to be processed' % rsvp['rsvp_id'])
 
-    event_db_record = collections.OrderedDict()
-    event_db_record['event_id'] = rsvp['event']['event_id']
-    event_db_record['name'] = rsvp['event']['event_name']
-    event_db_record['url'] = rsvp['event']['event_url']
-    event_db_record['timestamp'] = rsvp['event']['time'] if 'time' in rsvp['event'] else None
-    event_db_record['lat'] = rsvp['venue']['lat'] if 'venue' in rsvp else None
-    event_db_record['lng'] = rsvp['venue']['lon'] if 'venue' in rsvp else None
+    rsvp_record = collections.OrderedDict()
+    rsvp_record['event_id'] = rsvp['event']['event_id']
+    rsvp_record['name'] = rsvp['event']['event_name']
+    rsvp_record['url'] = rsvp['event']['event_url']
+    rsvp_record['event_timestamp'] = rsvp['event']['time'] if 'time' in rsvp['event'] else None
+    rsvp_record['lat'] = rsvp['venue']['lat'] if 'venue' in rsvp else None
+    rsvp_record['lon'] = rsvp['venue']['lon'] if 'venue' in rsvp else None
+    rsvp_record['rsvp_id'] = rsvp['rsvp_id']
+    rsvp_record['response'] = 1 if rsvp['response'] == 'yes' else 0
+    rsvp_record['rsvp_timestamp'] = rsvp['mtime']
 
-    rsvp_db_record = collections.OrderedDict()
-    rsvp_db_record['rsvp_id'] = rsvp['rsvp_id']
-    rsvp_db_record['response'] = 1 if rsvp['response'] == 'yes' else 0
-    rsvp_db_record['timestamp'] = rsvp['mtime']
-    rsvp_db_record['event_id'] = rsvp['event']['event_id']
+    response = db.insert_records('event_rsvp', json.dumps(rsvp_record), list_encoding='json')
 
-    response_rsvp = db.insert_records('rsvp', json.dumps(rsvp_db_record), list_encoding='json')
-    response_event = db.insert_records('event', json.dumps(event_db_record), list_encoding='json')
-
-    if response_rsvp['status_info']['status'] == 'OK' and response_event['status_info']['status'] == 'OK':
+    if response['status_info']['status'] == 'OK':
         print('RSVP ID: %d stored in DB' % rsvp['rsvp_id'])
     else:
         print('Error while storing')
-        print(response_rsvp)
-        print(response_event)
+        print(response)
 
 
 if __name__ == '__main__':

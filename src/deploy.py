@@ -5,6 +5,7 @@ import config
 
 def main():
     db = gpudb.GPUdb(host=config.GPUDB_HOST, port=config.GPUDB_PORT)
+
     db.create_proc(
         proc_name=config.UDF_NAME,
         execution_mode=config.UDF_EXECUTION_MODE,
