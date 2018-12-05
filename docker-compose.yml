@@ -5,6 +5,15 @@ services:
     ports:
       - "8080:8080"  # Admin
       - "8088:8088"  # Reveal
+  kinetica-my:
+    environment:
+      - LICENSE_KEY=YC3dbsSeT2wm-bUYeHl+eGB0l-79+nU+JwTZNA-xSgcqXAZxRAU-Y24mK/UykRmFtBTV7Sl1lwlDj0oq6lpw
+    build:
+      context: docker/
+      dockerfile: kinetica.dockerfile
+    ports:
+      - "8080:8080"  # Admin
+      - "8088:8088"  # Reveal
       - "9191:9191"  # REST API
     privileged: true
     mem_limit: 8g
