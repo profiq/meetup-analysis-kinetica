@@ -1,11 +1,6 @@
 version: "2.3"
 services:
   kinetica:
-    image: kinetica/kinetica-intel
-    ports:
-      - "8080:8080"  # Admin
-      - "8088:8088"  # Reveal
-  kinetica-my:
     environment:
       - LICENSE_KEY=YC3dbsSeT2wm-bUYeHl+eGB0l-79+nU+JwTZNA-xSgcqXAZxRAU-Y24mK/UykRmFtBTV7Sl1lwlDj0oq6lpw
     build:
@@ -21,3 +16,5 @@ services:
     build:
       context: .
       dockerfile: docker/python.dockerfile
+    depends_on:
+      - kinetica

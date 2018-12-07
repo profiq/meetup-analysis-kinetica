@@ -4,7 +4,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SRC_DIR = os.path.join(BASE_DIR, 'src')
 
 # Kinetica connection parameters
-GPUDB_HOST = 'kinetica-my'
+GPUDB_HOST = 'kinetica'
 GPUDB_PORT = '9191'
 
 # Table definition for storing responses to Meetup events
