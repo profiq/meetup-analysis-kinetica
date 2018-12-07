@@ -9,4 +9,4 @@ WORKDIR /app
 
 RUN pip install -r /app/requirements.txt
 
-ENTRYPOINT ["/bin/sh", "-c", "python /app/src/deploy.py && python /app/src/meetup.py"]
+ENTRYPOINT ["/bin/sh", "-c", "sleep 5 && python /app/src/deploy.py && python /app/src/meetup.py"]

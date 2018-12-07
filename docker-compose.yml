@@ -11,10 +11,12 @@ services:
       - "8088:8088"  # Reveal
       - "9191:9191"  # REST API
     privileged: true
-    mem_limit: 8g
+    mem_limit: 4g
+    restart: always
   python:
     build:
       context: .
       dockerfile: docker/python.dockerfile
     depends_on:
       - kinetica
+    restart: always
