@@ -23,18 +23,18 @@
 <div id='map'></div>
 
 <!-- Include mapbox and kickbox library -->
-<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.41.0/mapbox-gl.js"></script>
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0-beta.1/mapbox-gl.js"></script>
 <script src="./kickbox.min.js"></script>
 <script>
     (function(mapboxgl) {
 
         // Initialize the map
         var kbConfig = {
-            kineticaUrl: 'http://localhost:10004',
-            wmsUrl: 'http://localhost:10004/wms',
+            kineticaUrl: 'http://192.168.88.140:9191',
+            wmsUrl: 'http://192.168.88.140:9191/wms',
             mapboxKey: 'pk.eyJ1IjoibXN2YW5hcHJvZmlxIiwiYSI6ImNqb3R6dDk0YzEzOXgzcHBjcHB4ZGFzc3AifQ.JwAE4uhGh1fr2bz9mvMBmQ',
             tableName: 'event_rsvp',
-            xColumnName: 'lng',
+            xColumnName: 'lon',
             yColumnName: 'lat',
             // geohashColumnName: 'your_geohash_column_name',
             center: [-74.2598555, 40.6971494],
@@ -56,52 +56,21 @@
             center: kbConfig.center,
         }).then(function(map) {
 
-            // Add a raster layer to the map
+            window.map = map;
 
+            // Add a raster layer to the map
             kickbox.addWmsLayer(map, {
                 layerType: 'heatmap',
-                layerId: layerId,
-                wmsUrl: kbConfig.wmsUrl,
                 tableName: kbConfig.tableName,
-                xAttr: kbConfig.xColumnName,
-                yAttr: kbConfig.yColumnName,
-                // or if using WKT
-                // geoAttr: kbConfig.wktColumnName,
+                wmsUrl: kbConfig.wmsUrl,
+                layerId: layerId,
+                xAttr: 'lon',
+                yAttr: 'lat',
                 renderingOptions: {
                     POINTCOLORS: '00FF00',
-                    LABEL_TEXT_STRING: 'name',
-                    POINTSIZES: 2
+                    POINTSIZES: 3
                 },
             });
-
-            var i = 0;
-
-            /**
-            setInterval(function() {
-                console.log(layerId + i);
-                kickbox.removeLayer(map, layerId + i);
-
-                i++;
-
-                kickbox.addWmsLayer(map, {
-                    layerType: 'heatmap',
-                    layerId: layerId + i,
-                    wmsUrl: kbConfig.wmsUrl,
-                    tableName: kbConfig.tableName,
-                    xAttr: kbConfig.xColumnName,
-                    yAttr: kbConfig.yColumnName,
-                    // or if using WKT
-                    // geoAttr: kbConfig.wktColumnName,
-                    renderingOptions: {
-                        POINTCOLORS: '00FF00',
-                        LABEL_TEXT_STRING: 'name',
-                        POINTSIZES: 2
-                    },
-                });
-            }, 1000);
-             */
-
-
         });
 
     })(window.mapboxgl);

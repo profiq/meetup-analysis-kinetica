@@ -20,18 +20,6 @@ EVENT_RSVP_TYPE = [
     ['lon', 'double', 'nullable'],
     ['rsvp_id', 'long', 'primary_key'],
     ['response', 'int', 'int8'],
-    ['rsvp_timestamp', 'long', 'timestamp']
+    ['rsvp_timestamp', 'long', 'timestamp'],
+    ['city', 'string', 'char64', 'nullable', 'text_search']
 ]
-
-
-# UDF for collecting Meetup.com data
-UDF_NAME = 'collect_meetup'
-UDF_EXECUTION_MODE = 'nondistributed'
-
-UDF_FILES = {
-    'meetup.py': open(os.path.join(SRC_DIR, 'meetup.py'), 'rb').read(),
-    'config.py': open(os.path.join(SRC_DIR, 'config.py'), 'rb').read()
-}
-
-UDF_COMMAND = 'python'
-UDF_ARGS = ['meetup.py']
