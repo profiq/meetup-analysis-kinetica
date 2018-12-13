@@ -27,12 +27,14 @@ class CityInfoProvider:
 
     def get_city_for_coordinates(self, event_id: str, lat: float, lon: float) -> str:
         city = self._find_city_in_db(event_id)
-        print(city)
         if city is None:
             city = self._find_city_on_meetup(lat, lon)
         return city
 
     def _find_city_on_meetup(self, lat: float, lon: float) -> str:
+        if lat is None or lon is None:
+            return None
+
         if self._counter == self._counter_max:
             if self._verbose:
                 print('Counter reached maximum')
