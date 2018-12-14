@@ -1,54 +1,40 @@
 import collections
 import functools
 import json
-import time
+import traceback
 
 import gpudb
 import requests
 import websocket
 
+import apiutils
 import config
-import traceback
-
-MEETUP_API_RSVP_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
-MEETUP_API_CITIES_ENDPOINT = 'https://api.meetup.com/2/cities'
 
 
 class CityInfoProvider:
 
-    def __init__(self, endpoint: str, db: gpudb.GPUdb, table_name: str, verbose=False):
+    def __init__(self, endpoint: str, db: gpudb.GPUdb, table_name: str, throttle: apiutils.MeetupThrottle,
+                 verbose=False):
         self._endpoint = endpoint
         self._db = db
         self._verbose = verbose
         self._table_name = table_name
-        self._counter = 0
-        self._counter_max = 29
-        self._counter_reset_time = 10
-        self._last_reset_time = time.time()
+        self._throttle = throttle
 
     def get_city_for_coordinates(self, event_id: str, lat: float, lon: float) -> str:
-        city = self._find_city_in_db(event_id)
-        if city is None:
-            city = self._find_city_on_meetup(lat, lon)
+        if lat is None or lon is None:
+            city = None
+        else:
+            city = self._find_city_in_db(event_id)
+            if city is None:
+                city = self._find_city_on_meetup(lat, lon)
         return city
 
     def _find_city_on_meetup(self, lat: float, lon: float) -> str:
-        if lat is None or lon is None:
-            return None
-
-        if self._counter == self._counter_max:
-            if self._verbose:
-                print('Counter reached maximum')
-            time_from_last_reset = time.time() - self._last_reset_time
-            if time_from_last_reset < self._counter_reset_time:
-                if self._verbose:
-                    print('Need to wait until counter reset time')
-                time.sleep(self._counter_reset_time - time_from_last_reset)
-            self._counter = 0
-
+        self._throttle.wait_for_request_permission()
         params = {'lat': lat, 'lon': lon, 'page': 1}
         response = requests.get(self._endpoint, params).json()
-        self._counter += 1
+        self._throttle.increment_counter()
         if 'results' in response and len(response['results']) == 1:
             city = response['results'][0]['city']
         else:
@@ -58,11 +44,14 @@ class CityInfoProvider:
     def _find_city_in_db(self, event_id: str) -> str:
         city = None
 
-        results = self._db.get_records(
-            self._table_name,
-            limit=2,
-            encoding='json',
-            options={'expression': 'event_id = "%s" AND IS_NULL(city) = 0' % event_id})
+        try:
+            results = self._db.get_records(
+                self._table_name,
+                limit=2,
+                encoding='json',
+                options={'expression': 'event_id = "%s" AND IS_NULL(city) = 0' % event_id})
+        except UnicodeDecodeError:
+            return None
 
         status = results['status_info']
         num_records = len(results['records_json'])
@@ -84,10 +73,12 @@ class CityInfoProvider:
 
 def main():
     db = gpudb.GPUdb(host=config.GPUDB_HOST, port=config.GPUDB_PORT)
-    city_info_provider = CityInfoProvider(MEETUP_API_CITIES_ENDPOINT, db, config.EVENT_RSVP_TABLE_NAME, True)
+    throttle = apiutils.MeetupThrottle(config.MEETUP_MAX_REQUESTS, config.MEETUP_PERIOD)
+    city_info_provider = CityInfoProvider(
+        config.MEETUP_API_CITIES_ENDPOINT, db, config.EVENT_RSVP_TABLE_NAME, throttle, True)
     websocket.enableTrace(False)
     on_message = functools.partial(store_rsvp, db=db, city_info_provider=city_info_provider)
-    ws = websocket.WebSocketApp(MEETUP_API_RSVP_ENDPOINT, on_message=on_message)
+    ws = websocket.WebSocketApp(config.MEETUP_API_RSVP_ENDPOINT, on_message=on_message)
     ws.run_forever()
 
 
@@ -109,7 +100,7 @@ def store_rsvp(_, rsvp_string, db, city_info_provider: CityInfoProvider):
         rsvp_record['city'] = city_info_provider.get_city_for_coordinates(
             rsvp_record['event_id'], rsvp_record['lat'], rsvp_record['lon'])
 
-        response = db.insert_records('event_rsvp', json.dumps(rsvp_record), list_encoding='json')
+        response = db.insert_records('event_rsvp', json.dumps(rsvp_record, ensure_ascii=False), list_encoding='json')
 
         if response['status_info']['status'] == 'OK':
             print('RSVP ID: %d stored in DB' % rsvp['rsvp_id'])

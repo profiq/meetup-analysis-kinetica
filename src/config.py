@@ -3,18 +3,26 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SRC_DIR = os.path.join(BASE_DIR, 'src')
 
+# Meetup.com API endpoints
+MEETUP_API_RSVP_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
+MEETUP_API_CITIES_ENDPOINT = 'https://api.meetup.com/2/cities'
+
+# Meetup.com API Limits
+MEETUP_MAX_REQUESTS = 30
+MEETUP_PERIOD = 10
+
 # Kinetica connection parameters
 GPUDB_HOST = 'kinetica'
 GPUDB_PORT = '9191'
 
-# Table definition for storing responses to Meetup events
+# Definition of a table for storing responses to Meetup events
 EVENT_RSVP_COLLECTION = 'meetup'
 EVENT_RSVP_TABLE_NAME = 'event_rsvp'
 
 EVENT_RSVP_TYPE = [
     ['event_id', 'string', 'char32', 'primary_key', 'shard_key'],
     ['name', 'string', 'char128', 'text_search'],
-    ['url', 'string', 'char128'],
+    ['url', 'string', 'char256'],
     ['event_timestamp', 'long', 'nullable', 'timestamp'],
     ['lat', 'double', 'nullable'],
     ['lon', 'double', 'nullable'],
