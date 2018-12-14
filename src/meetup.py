@@ -122,4 +122,5 @@ def store_rsvp(_, rsvp_string, db, city_info_provider: CityInfoProvider):
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
