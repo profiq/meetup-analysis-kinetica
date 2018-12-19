@@ -5,6 +5,13 @@ import requests
 
 
 class VerboseMixin:
+    """
+    Adds optional logging capability to a class.
+    Child class is expected to have a boolean `_verbose` attribute determining whether logging is active
+    Logging can be performed by calling the `_print` method
+    Optionally a log prefix can be set to distinguish different logging sources
+    """
+
     LOG_PREFIX = ''
 
     def _print(self, msg):
@@ -17,8 +24,6 @@ class VerboseMixin:
 
 
 class MeetupThrottle(VerboseMixin):
-    LOG_PREFIX = 'throttle'
-
     """
     Meetup.com API allows for only `max_requests` requests during `period` seconds long period of time
     This class can be used to control number of API requests in other parts of code.
@@ -32,6 +37,8 @@ class MeetupThrottle(VerboseMixin):
             ... make your request ...
             throttle.increment_counter()
     """
+
+    LOG_PREFIX = 'throttle'
 
     def __init__(self, max_requests, period, verbose=False):
         """
@@ -50,6 +57,10 @@ class MeetupThrottle(VerboseMixin):
         self._print('Requests in this period: %d' % self._counter)
 
     def wait_for_request_permission(self):
+        """
+        Checksif a requiest can be done during current period.
+        If the limit has been exceeded wait until new period starts.
+        """
         if self._counter == self._max_requests:
             self._print('Counter reached maximum')
             time_from_last_reset = time.time() - self._last_period_reset_time
@@ -60,7 +71,21 @@ class MeetupThrottle(VerboseMixin):
             self._counter = 0
 
 
-class CityInfoProvider(VerboseMixin):
+class CityProvider(VerboseMixin):
+    """
+    Find the name of the city in which a given event is going to happen.
+    Uses either geographical coordinates or event id to find the city.
+
+    First searches Kinetica DB if the event with a given ID is already stored.
+    If a match is found, same city is used for the new record.
+    If not, Meetup.com API is used to find the city name from coordinates.
+    This mechanism significantly reduces the use of Meetup.com API, which is limited to 30 request per 10 seconds.
+
+    Example:
+        city_provider = CityProvider(MEETUP_CITY_URL, db, 'event_rsvp', throttle, True)
+        city_name = city_provider.get_city('some_event_id', 45.01345, 10.54321)
+    """
+
     LOG_PREFIX = 'city'
 
     def __init__(self, endpoint, db, table_name, throttle, verbose=False):
@@ -69,7 +94,7 @@ class CityInfoProvider(VerboseMixin):
         :param gpudb.GPUdb db: Connection to Kinetica DB
         :param str table_name: Meetup RSVPs table name
         :param MeetupThrottle throttle: Throttle object to manage API request limits
-        :param bool verbose: Print debug output
+        :param bool verbose: Should debug output be printed
         """
         self._endpoint = endpoint
         self._db = db
@@ -77,11 +102,14 @@ class CityInfoProvider(VerboseMixin):
         self._throttle = throttle
         self._verbose = verbose
 
-    def get_city_for_coordinates(self, event_id, lat, lon):
+    def get_city(self, event_id, lat, lon):
         """
-        :param str event_id:
-        :param float lat:
-        :param float lon:
+        Find the city name for an event either by event ID using older records in the DB or (if this approach fails)
+        by geographical coordinates. Returns the city name on success or `None` if the name of the city is not found.
+
+        :param str event_id: ID of the Meetup event. Used to find the city name in the DB
+        :param float lat: Latitude, used to find the city name using Meetup API, if no match is found in the DB
+        :param float lon: Longtitude. Used to find the city name using Meetup API, if no match is found in the DB
         :rtype: str
         """
         if lat is None or lon is None or lat == 0.0 or len == 0.0:
@@ -94,8 +122,12 @@ class CityInfoProvider(VerboseMixin):
 
     def _find_city_on_meetup(self, lat: float, lon: float):
         """
-        :param float lat:
-        :param float lon:
+        Find the city name by geographical coordinates using Meetup API. Because of the request limitation
+        this approach is used only if the city is not found by `event_id` in the DB. Returns city name on success or
+        None if the name of the city is not found.
+
+        :param float lat: Latitude of the the event location
+        :param float lon: Longtitude of the event location
         :rtype: str
         """
         self._throttle.wait_for_request_permission()
@@ -121,7 +153,11 @@ class CityInfoProvider(VerboseMixin):
 
     def _find_city_in_db(self, event_id):
         """
-        :param str event_id:
+        Find city name for an event in the DB using it's ID. If this approach fails, geographical coordinates and
+        Meetup API is used. Searching our own DB is preferred because of Meetup API request limits. Returns city name
+        on success or `None` if the city is not found.
+
+        :param str event_id: Meetup Event ID
         :rtype: str
         """
         try:

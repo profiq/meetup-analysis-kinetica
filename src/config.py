@@ -19,6 +19,9 @@ GPUDB_PORT = '9191'
 EVENT_RSVP_COLLECTION = 'meetup'
 EVENT_RSVP_TABLE_NAME = 'event_rsvp'
 
+# Table structure definition. Each list describes one column.
+# First element of the list defines the column name, the second one the basic data type
+# and other elements define additional properties (subtype, indexing).
 EVENT_RSVP_TYPE = [
     ['event_id', 'string', 'char32', 'primary_key', 'shard_key'],
     ['name', 'string', 'char128', 'text_search'],
