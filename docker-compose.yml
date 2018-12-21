@@ -12,11 +12,11 @@ services:
       - "9191:9191"  # REST API
     privileged: true
     mem_limit: 4g
-    restart: always
+    restart: on-failure
   python:
     build:
       context: .
       dockerfile: docker/python.dockerfile
     depends_on:
       - kinetica
-    restart: always
+    restart: on-failure

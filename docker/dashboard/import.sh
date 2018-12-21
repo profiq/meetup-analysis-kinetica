@@ -5,3 +5,5 @@
 
 /opt/gpudb/connectors/reveal/lib/python2.7/site-packages/caravel-0.11.0-py2.7.egg/caravel/reveal-utils.py \
     import "Meetup.com Dashboard"  /dashboard/dashboard.db /opt/gpudb/connectors/reveal/var/caravel.db
+
+sqlite3 /opt/gpudb/connectors/reveal/var/caravel.db ".read /dashboard/dayofweek.sql"
