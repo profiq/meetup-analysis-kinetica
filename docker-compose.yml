@@ -2,7 +2,7 @@ version: "2.3"
 services:
   kinetica:
     environment:
-      - LICENSE_KEY=YC3dbsSeT2wm-bUYeHl+eGB0l-79+nU+JwTZNA-xSgcqXAZxRAU-Y24mK/UykRmFtBTV7Sl1lwlDj0oq6lpw
+      - LICENSE_KEY=
     build:
       context: docker/
       dockerfile: kinetica.dockerfile
