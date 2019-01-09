@@ -1,10 +1,14 @@
 import json
+from datetime import datetime
 
 import gpudb
 import pandas
-from tzwhere import tzwhere
 import pytz
-from datetime import datetime
+from sklearn import metrics
+from sklearn import model_selection
+from sklearn import neural_network
+from sklearn import preprocessing
+from tzwhere import tzwhere
 
 import config
 
@@ -23,6 +27,8 @@ def main():
     events_df['day_of_week'] = events_df.apply(lambda e: e['time_local'].weekday(), axis=1)
     events_df['hour'] = events_df.apply(lambda e: e['time_local'].hour, axis=1)
 
+    train_model(events_df)
+
 
 def get_events_from_db(db, offset=0):
     """
@@ -33,7 +39,7 @@ def get_events_from_db(db, offset=0):
     events_response = db.aggregate_group_by(
         table_name=config.EVENT_RSVP_TABLE_NAME,
         column_names=['city', 'event_id', 'event_timestamp', 'SUM(response) AS yes_responses', 'lat', 'lon'],
-        limit=1000,
+        limit=30000,
         offset=offset,
         encoding='json',
         options={
@@ -64,6 +70,23 @@ def events_to_dataframe(events):
 
     df = pandas.DataFrame(event_records)
     return df
+
+
+def train_model(events):
+    """
+    :param pandas.DataFrame events: Data about events
+    """
+    y = events['yes_responses'].values
+    X = events[['city', 'hour', 'day_of_week']].values
+    one_hot_encoder = preprocessing.OneHotEncoder()
+    X = one_hot_encoder.fit_transform(X, y)
+
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.15, shuffle=True)
+    cls = neural_network.multilayer_perceptron.MLPRegressor((200, 200, 200), max_iter=1000)
+    cls.fit(X_train, y_train)
+    y_pred = cls.predict(X_train)
+    score = metrics.r2_score(y_train, y_pred)
+    print(score)
 
 
 if __name__ == '__main__':
