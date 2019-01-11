@@ -12,7 +12,7 @@ MEETUP_MAX_REQUESTS = 30
 MEETUP_PERIOD = 10
 
 # Kinetica connection parameters
-GPUDB_HOST = 'kinetica'
+GPUDB_HOST = 'localhost'
 GPUDB_PORT = '9191'
 
 # Definition of a table for storing responses to Meetup events
