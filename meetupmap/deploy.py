@@ -68,7 +68,7 @@ def add_db_column(db, table, col_name, col_type, col_properties=''):
         table_name=table, action='add_column', value=col_name,
         options={'column_type': col_type, 'column_properties': col_properties})
     status_info = response['status_info']
-    already_exists = 'message' in status_info and 'Duplocate attribute' in status_info['message']
+    already_exists = 'message' in status_info and 'Duplicate attribute' in status_info['message']
 
     if already_exists:
         print('Column %s already exists' % col_name)
