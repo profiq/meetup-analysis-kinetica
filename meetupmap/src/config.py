@@ -5,11 +5,11 @@ SRC_DIR = os.path.join(BASE_DIR, 'src')
 
 # Meetup.com API endpoints
 MEETUP_API_RSVP_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
-MEETUP_API_CITIES_ENDPOINT = 'https://api.meetup.com/2/cities'
+MEETUP_API_EVENTS_ENDPOINT = 'https://api.meetup.com/2/events'
+MEETUP_API_GROUP_ENDPOINT = 'https://api.meetup.com/%s'
 
 # Meetup.com API Limits
-MEETUP_MAX_REQUESTS = 30
-MEETUP_PERIOD = 10
+MEETUP_API_SLEEP_TIME = 0.35
 
 # Kinetica connection parameters
 GPUDB_HOST = 'localhost'
