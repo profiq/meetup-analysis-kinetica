@@ -12,7 +12,7 @@ MEETUP_API_GROUP_ENDPOINT = 'https://api.meetup.com/%s'
 MEETUP_API_SLEEP_TIME = 0.35
 
 # Kinetica connection parameters
-GPUDB_HOST = 'localhost'
+GPUDB_HOST = 'kinetica'
 GPUDB_PORT = '9191'
 
 # Definition of a table for storing responses to Meetup events
@@ -32,5 +32,8 @@ EVENT_RSVP_TYPE = [
     ['rsvp_id', 'long', 'primary_key'],
     ['response', 'int', 'int8'],
     ['rsvp_timestamp', 'long', 'timestamp'],
-    ['city', 'string', 'char64', 'nullable', 'text_search']
+    ['city', 'string', 'char64', 'nullable', 'text_search'],
+    ['country', 'string', 'char4', 'nullable'],
+    ['group_members', 'long', 'nullable'],
+    ['group_events', 'int', 'nullable']
 ]
