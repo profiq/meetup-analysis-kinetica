@@ -9,4 +9,4 @@ WORKDIR /app
 
 RUN pip3 install -r /app/requirements.txt
 
-ENTRYPOINT ["/bin/sh", "-c", "sleep 5 && python3 /app/src/deploy.py && python3 -u /app/src/meetup.py"]
+ENTRYPOINT ["/bin/sh", "-c", "sleep 5 && python3 /app/meetupmap/deploy.py && python3 -u /app/meetupmap/meetup.py"]
