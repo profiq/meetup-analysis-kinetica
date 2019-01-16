@@ -33,7 +33,7 @@ def main():
 
 def add_to_storing_queue(_, rsvp_json, queue):
     """
-    Adds RSVPs to a queue for storing. This solution is chosen because some additional info about
+    Add RSVPs to a queue for storing. This solution is chosen because some additional info about
     the event is requested from the DB or Meetup API. This might take some time and we need to process other
     incoming RSVPs without waiting
 
@@ -47,9 +47,16 @@ def add_to_storing_queue(_, rsvp_json, queue):
 
 def store_rsvps(db, queue, event_info_provider):
     """
-    :param gpudb.GPUdb db:
-    :param multiprocessing.Queue queue:
-    :param apiutils.EventInfoProvider event_info_provider:
+    Process and store RSVPs received from a queue. Runs in a separate thread.
+    RSVPs are transformed to a form matching table structure and suitable for storing.
+
+    After 10 RSVPs are collected, addional event info not present in the raw RSVP is received and then all 10
+    records are stored. Meetup API limits number of requests to 30 per 10 seconds. Some endpoints allow us
+    to receive information about multiple events at once. This allows us to reduce the number of requests required.
+
+    :param gpudb.GPUdb db: Connection to Kinetica's GPUdb
+    :param multiprocessing.Queue queue: Queue providing RSVPs to store
+    :param apiutils.EventInfoProvider event_info_provider: Provides additional event information not present in the RSVP
     """
     rsvp_record_bases = []
 
@@ -69,6 +76,9 @@ def store_rsvps(db, queue, event_info_provider):
 
 def record_base_from_rsvp(rsvp):
     """
+    Transform raw RSVP received from Meetup API to a structure suitable for the DB.
+    Result of this transformation does not contain all the required information, hence the name "record_base"
+
     :param dict rsvp: Raw RSVP received from Meetup.com API
     :rtype: collections.OrderedDict
     """
@@ -86,6 +96,13 @@ def record_base_from_rsvp(rsvp):
 
 
 def add_event_info_to_record_bases(event_info, rsvp_record_bases):
+    """
+    Add additional event information received from EventInfoProvider to RSVP record bases
+
+    :param dict event_info: Dictionary containing additional event info. Key is the event_id, value is a dict
+    :param rsvp_record_bases: List of record bases to augment by additional event info
+    :rtype: list
+    """
     rsvp_records = []
     for rsvp_base in rsvp_record_bases:
         rsvp = rsvp_base.copy()
@@ -98,8 +115,16 @@ def add_event_info_to_record_bases(event_info, rsvp_record_bases):
 
 
 def save_records_to_db(db, rsvp_records):
+    """
+    Save records to the database
+    Notice the `ensure_ascii=False parameter`. It's required to correctly store unicode characters
+
+    :param gpudb.GPUdb db: Connection to Kinetica's GPUdb
+    :param list rsvp_records: Records to store
+    :return:
+    """
     dumped_records = [json.dumps(r, ensure_ascii=False) for r in rsvp_records]
-    response = db.insert_records('event_rsvp', dumped_records, list_encoding='json')
+    response = db.insert_records(config.EVENT_RSVP_TABLE_NAME, dumped_records, list_encoding='json')
 
     if response['status_info']['status'] == 'OK':
         print('[store] Record inserted')
@@ -109,6 +134,5 @@ def save_records_to_db(db, rsvp_records):
 
 
 if __name__ == '__main__':
-    while True:
-        main()
+    main()
 

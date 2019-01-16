@@ -14,7 +14,8 @@ def main():
 
 def create_event_rsvp_table(db):
     """
-    Creates an empty table for storing RSVPs from Meetup.com streaming API. Nothing happens if the table already exists
+    Creates an empty table for storing RSVPs from Meetup.com streaming API.
+    Nothing happens if the table already exists
 
     :param gpudb.GPUdb db: Connection to Kinetica DB
     """
