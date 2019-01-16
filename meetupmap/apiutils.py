@@ -72,7 +72,7 @@ class EventInfoProvider:
     def _get_event_info_from_db(self, event_ids):
         """
         Get event info from RSVPs already stored in the DB
-        
+
         :param list event_ids: IDs of events info about which is requested
         :rtype: dict
         """
