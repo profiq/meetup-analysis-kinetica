@@ -6,6 +6,16 @@ import config
 
 
 class EventInfoProvider:
+    """
+    Provide additional info about events:
+     - city
+     - country
+     - group_members
+     - group_event
+
+    First searched RSVPs already present in the DB for the info and then uses Meetup API to get data about events
+    not found in the database. Requests to Meetup API are limited to 30 per 10 seconds.
+    """
 
     def __init__(self, db):
         """
@@ -15,6 +25,13 @@ class EventInfoProvider:
         self._table_name = config.EVENT_RSVP_TABLE_NAME
 
     def get_info(self, event_ids):
+        """
+        Get information about a list of events
+
+        :param list event_ids: IDs of events info about which is requested
+        :rtype: dict
+        :returns: Dictionary with event IDs used as keys and dictionaries with event data as values
+        """
         event_info = self._get_event_info_from_db(event_ids)
         print('[event] DB hits: %d' % len(event_info))
         event_ids_not_in_db = [e for e in event_ids if e not in event_info]
@@ -23,6 +40,15 @@ class EventInfoProvider:
         return event_info
 
     def _get_info_from_meetup(self, event_ids):
+        """
+        Get event info from Meetup.
+
+        EVENTS_ENDPOINT containing city, country and unique group urlname can be call once for all events
+        Separate requests are required to get data about each group.
+
+        :param list event_ids: IDs of events info about which is requested
+        :rtype: dict
+        """
         event_ids_str = ','.join(event_ids)
         status, resp = self._do_request(config.MEETUP_API_EVENTS_ENDPOINT, params={'event_id': event_ids_str})
         event_info = {}
@@ -44,6 +70,12 @@ class EventInfoProvider:
         return event_info
 
     def _get_event_info_from_db(self, event_ids):
+        """
+        Get event info from RSVPs already stored in the DB
+        
+        :param list event_ids: IDs of events info about which is requested
+        :rtype: dict
+        """
         event_ids_str = "'%s'" % "','".join(event_ids)
         try:
             event_info = {}
@@ -57,6 +89,7 @@ class EventInfoProvider:
                                   'AND (IS_NULL(country) = 0 OR IS_NULL(group_members) = 0 '
                                   'OR IS_NULL(group_events) = 0)' % event_ids_str})
             results = json.loads(results['json_encoded_response'])
+
             for i in range(len(results['column_1'])):
                 event_info[results['column_1'][i]] = {
                     'city': results['column_2'][i],
@@ -64,11 +97,20 @@ class EventInfoProvider:
                     'group_members': results['column_4'][i],
                     'group_events': results['column_5'][i]
                 }
+
             return event_info
         except UnicodeDecodeError:
             return {}
 
     def _get_group_info(self, urlname):
+        """
+        Get information about a group using Meetup.com API.
+        Includes number of members and number of previous events
+
+        :param urlname: unique urlname of the group
+        :rtype: dict
+        :return: Dictionary containing `group_members` and `group_events` keys
+        """
         params = {'fields': 'past_event_count'}
         status, resp = self._do_request(config.MEETUP_API_GROUP_ENDPOINT % urlname, params=params)
         if status == 200:
@@ -82,8 +124,18 @@ class EventInfoProvider:
 
     @staticmethod
     def _do_request(url, params=None):
+        """
+        Wrapper for requests.get().
+        Waits for config.MEETUP_API_SLEEP_TIME to comply with Meetup API limits.
+        Automatically adds API key to the request.
+
+        :param str url: Request URL
+        :param dict params: Dictionary containing GET parameters
+        :rtype: tuple
+        :returns: A tuple containing HTTP status code (int) and parsed JSON response (usually a dictionary)
+        """
         params = {} if params is None else params
-        params['key'] = '5b5d5233868b12b2d345a4a52f'
+        params['key'] = config.MEETUP_API_KEY
         time.sleep(config.MEETUP_API_SLEEP_TIME)
         response = requests.get(url, params)
         return response.status_code, response.json()

@@ -1,3 +1,6 @@
+# Meetup.com API key is optional. If not present IP address is used for request identification
+MEETUP_API_KEY = '5b5d5233868b12b2d345a4a52f'
+
 # Meetup.com API endpoints
 MEETUP_API_RSVP_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
 MEETUP_API_EVENTS_ENDPOINT = 'https://api.meetup.com/2/events'
