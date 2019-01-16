@@ -7,8 +7,8 @@ import threading
 import gpudb
 import websocket
 
-from src import apiutils
-from src import config
+import apiutils
+import config
 
 
 def main():

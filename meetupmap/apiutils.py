@@ -2,7 +2,7 @@ import requests
 import time
 import json
 
-from src import config
+import config
 
 
 class EventInfoProvider:

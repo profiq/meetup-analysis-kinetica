@@ -1,5 +1,5 @@
 import gpudb
-from src import config
+import config
 
 
 def main():

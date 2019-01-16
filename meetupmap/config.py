@@ -1,8 +1,3 @@
-import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-SRC_DIR = os.path.join(BASE_DIR, 'src')
-
 # Meetup.com API endpoints
 MEETUP_API_RSVP_ENDPOINT = 'ws://stream.meetup.com/2/rsvps'
 MEETUP_API_EVENTS_ENDPOINT = 'https://api.meetup.com/2/events'
