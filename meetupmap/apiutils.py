@@ -136,6 +136,12 @@ class EventInfoProvider:
         """
         params = {} if params is None else params
         params['key'] = config.MEETUP_API_KEY
+        response = None
         time.sleep(config.MEETUP_API_SLEEP_TIME)
-        response = requests.get(url, params)
-        return response.status_code, response.json()
+        try:
+            response = requests.get(url, params)
+            if response.status_code != 200:
+                return response.status_code, {}
+            return response.status_code, response.json()
+        except Exception:
+            return response.status_code if response is not None else 0, {}
