@@ -123,14 +123,15 @@ def save_records_to_db(db, rsvp_records):
     :param list rsvp_records: Records to store
     :return:
     """
-    dumped_records = [json.dumps(r, ensure_ascii=False) for r in rsvp_records]
-    response = db.insert_records(config.EVENT_RSVP_TABLE_NAME, dumped_records, list_encoding='json')
+    for record in rsvp_records:
+        dumped_record = json.dumps(record, ensure_ascii=False)
+        response = db.insert_records(config.EVENT_RSVP_TABLE_NAME, dumped_record, list_encoding='json')
 
-    if response['status_info']['status'] == 'OK':
-        print('[store] Record inserted')
-    else:
-        print('[store] Error while storing')
-        print(response)
+        if response['status_info']['status'] == 'OK':
+            print('[store] Record %d inserted' % record['rsvp_id'])
+        else:
+            print('[store] Error while storing record %d' % record['rsvp_id'])
+            print(response['status_info']['message'])
 
 
 if __name__ == '__main__':

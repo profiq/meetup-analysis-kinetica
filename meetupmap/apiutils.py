@@ -143,5 +143,5 @@ class EventInfoProvider:
             if response.status_code != 200:
                 return response.status_code, {}
             return response.status_code, response.json()
-        except Exception:
-            return response.status_code if response is not None else 0, {}
+        except json.JSONDecodeError:
+            return response.status_code, response.text if response is not None else 0, {}
