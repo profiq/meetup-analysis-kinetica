@@ -4,19 +4,19 @@ services:
     environment:
       - LICENSE_KEY=
     build:
-      context: docker/
-      dockerfile: kinetica.dockerfile
+      context: kinetica-backend/docker
+      dockerfile: kinetica-backend/docker/kinetica.dockerfile
     ports:
       - "8080:8080"  # Admin
       - "8088:8088"  # Reveal
       - "9191:9191"  # REST API
     privileged: true
-    mem_limit: 4g
+    mem_limit: 8g
     restart: on-failure
   python:
     build:
-      context: .
-      dockerfile: docker/python.dockerfile
+      context: kinetica-backend
+      dockerfile: kinetica-backend/docker/python.dockerfile
     depends_on:
       - kinetica
     restart: on-failure
