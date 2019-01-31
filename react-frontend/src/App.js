@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './App.css';
 import MainMap from './components/MainMap';
-import { Row, Col } from 'antd';
+import {Row, Col} from 'antd';
 import CitiesInfo from "./components/CitiesInfo";
 
 
@@ -13,7 +13,7 @@ class App extends Component {
       <div className="App">
         <Col span={16} offset={4}>
           <Row>
-            <div style={{textAlign:"center"}}>
+            <div style={{textAlign: "center"}}>
               <div className="mainTitle">Where we meet?</div>
               <div className="subTitle">Meetup.com API analysis powered by Kinetica platform</div>
             </div>
@@ -22,7 +22,7 @@ class App extends Component {
             <MainMap/>
           </Row>
           <Row>
-              <CitiesInfo/>
+            <CitiesInfo/>
           </Row>
         </Col>
       </div>
