@@ -130,7 +130,6 @@ def save_records_to_db(db, rsvp_records):
         print('[store] Record inserted')
     else:
         print('[store] Error while storing')
-        print(response)
 
 
 if __name__ == '__main__':

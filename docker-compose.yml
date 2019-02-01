@@ -15,8 +15,8 @@ services:
     restart: on-failure
   python:
     build:
-      context: kinetica-backend
-      dockerfile: python-backend/python.dockerfile
+      context: kinetica-backend/python-backend
+      dockerfile: python.dockerfile
     depends_on:
       - kinetica
     restart: on-failure
