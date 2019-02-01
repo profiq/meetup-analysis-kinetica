@@ -131,7 +131,6 @@ def save_records_to_db(db, rsvp_records):
             print('[store] Record %d inserted' % record['rsvp_id'])
         else:
             print('[store] Error while storing record %d' % record['rsvp_id'])
-            print(response['status_info']['message'])
 
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ class EventInfoProvider:
         status, resp = self._do_request(config.MEETUP_API_EVENTS_ENDPOINT, params={'event_id': event_ids_str})
         event_info = {}
 
-        if status == 200:
+        if status == 200 and 'results' in resp:
             events = resp['results']
             for event in events:
                 has_city = 'venue' in event and 'city' in event['venue']
