@@ -9,5 +9,5 @@ COPY . .
 
 RUN pip3 install -r /app/requirements.txt
 
-ENTRYPOINT ["/bin/sh", "-c", "sleep 5 && python3 /app/deploy.py && python3 -u /app/meetup.py"]
+ENTRYPOINT ["/bin/sh", "-c", "sleep 10 && python3 /app/deploy.py && python3 -u /app/meetup.py"]
 
