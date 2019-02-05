@@ -14,7 +14,7 @@ class App extends Component {
         <Col span={16} offset={4}>
           <Row>
             <div style={{textAlign: "center"}}>
-              <div className="mainTitle">Where we meet?</div>
+              <div className="mainTitle">Where do we meet?</div>
               <div className="subTitle">Meetup.com API analysis powered by Kinetica platform</div>
             </div>
           </Row>
