@@ -5,9 +5,13 @@ Meetup.com data analysis and visualization on Kinetica platform
 This project is fully described in the articles which can be found online.  
 We are focusing on these main topics:  
 
-1. Running the DB and injesting the data into it using python backend
+1. Running the DB and injesting the data into it using python backend  
+https://www.kinetica.com/blog/analyzing-meetup-rsvps-kinetica-part-one/
 2. Doing analysis using Kinetica Reaveal and how to build dashbaord
 3. Showing the data in our own JavaScript (React) app using KineticaDB API and Kickbox.js library
+
+You can check out this video describing the the project structure and how to run it:  
+https://youtu.be/1bMdZYdDnRo
 
 ### Backend setup (Kinetica DB with Reveal + Python import scripts)
 
